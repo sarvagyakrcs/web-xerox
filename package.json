@@ -1,0 +1,47 @@
+{
+  "name": "web-xerox",
+  "version": "2.0.0",
+  "description": "Web Xerox - A TypeScript application that fetches a webpage's source code and exports a rendered version as a JPEG image",
+  "module": "src/index.ts",
+  "type": "module",
+  "bin": {
+    "web-xerox": "src/index.ts"
+  },
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun --watch run src/index.ts",
+    "legacy": "bun run src/index.ts legacy",
+    "legacy:example": "bun run src/index.ts legacy --url=\"https://bun.sh\"",
+    "api": "bun run src/index.ts server",
+    "api:dev": "bun --watch run src/index.ts server",
+    "cli": "bun run src/index.ts",
+    "cli:source": "bun run src/index.ts source --url",
+    "cli:image": "bun run src/index.ts image --url",
+    "cli:process": "bun run src/index.ts process --url",
+    "example": "bun run src/index.ts process --url=\"https://bun.sh\"",
+    "example:api": "bun run examples/api-example.ts",
+    "example:sdk": "bun run examples/sdk-example.ts",
+    "example:browser": "open examples/browser-demo.html",
+    "example:streaming": "open examples/streaming-demo.html",
+    "docs": "bun run api",
+    "docs:dev": "bun run api:dev"
+  },
+  "author": "Sarvagya Kumar <https://thesarvagyakumar.site> (https://github.com/sarvagyakrcs)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.8",
+    "@hono/zod-validator": "^0.4.3",
+    "@types/node": "^22.13.10",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "hono": "^4.7.4",
+    "puppeteer": "^24.4.0",
+    "zod": "^3.24.2"
+  }
+}
