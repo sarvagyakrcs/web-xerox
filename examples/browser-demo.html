@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Xerox API Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .result-container {
+            margin-top: 2rem;
+            min-height: 300px;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .preview-image {
+            max-width: 100%;
+            height: auto;
+        }
+        .source-code {
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .api-card {
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s;
+        }
+        .api-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .nav-tabs {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="pb-3 mb-4 border-bottom">
+            <h1 class="display-5 fw-bold">Web Xerox API Demo</h1>
+            <p class="lead">Interact with the Web Xerox API to fetch webpage source code and screenshots</p>
+        </header>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">API Request</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="apiForm">
+                            <div class="mb-3">
+                                <label for="urlInput" class="form-label">Website URL</label>
+                                <input type="url" class="form-control" id="urlInput" placeholder="https://example.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">API Endpoint</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="endpoint" id="sourceEndpoint" value="source" checked>
+                                    <label class="form-check-label" for="sourceEndpoint">
+                                        Get Source Code
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="endpoint" id="imageEndpoint" value="image">
+                                    <label class="form-check-label" for="imageEndpoint">
+                                        Get Screenshot
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="endpoint" id="renderEndpoint" value="render">
+                                    <label class="form-check-label" for="renderEndpoint">
+                                        Process Webpage
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Submit Request</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">Download Options</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button id="downloadSourceBtn" class="btn btn-outline-success" disabled>
+                                <i class="bi bi-file-earmark-code"></i> Download Source Code
+                            </button>
+                            <button id="downloadImageBtn" class="btn btn-outline-success" disabled>
+                                <i class="bi bi-file-earmark-image"></i> Download Screenshot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="card-title mb-0">Result</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview" type="button" role="tab" aria-controls="preview" aria-selected="true">Preview</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="response-tab" data-bs-toggle="tab" data-bs-target="#response" type="button" role="tab" aria-controls="response" aria-selected="false">Response</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="resultTabsContent">
+                            <div class="tab-pane fade show active" id="preview" role="tabpanel" aria-labelledby="preview-tab">
+                                <div id="resultContainer" class="result-container">
+                                    <div class="text-center text-muted">
+                                        <p>Submit a request to see the result</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="response" role="tabpanel" aria-labelledby="response-tab">
+                                <pre id="responseJson" class="result-container">No response yet</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">Available API Endpoints</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card api-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">/source</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">GET</h6>
+                                        <p class="card-text">Returns the HTML source code of the specified webpage.</p>
+                                        <code>?url=https://example.com</code>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card api-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">/image</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">GET</h6>
+                                        <p class="card-text">Returns a JPEG screenshot of the specified webpage.</p>
+                                        <code>?url=https://example.com</code>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card api-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">/render</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">GET</h6>
+                                        <p class="card-text">Processes the webpage and returns paths to source and image files.</p>
+                                        <code>?url=https://example.com</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="card api-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">/download/source</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">GET</h6>
+                                        <p class="card-text">Downloads the HTML source code as a file.</p>
+                                        <code>?url=https://example.com</code>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card api-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">/download/image</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">GET</h6>
+                                        <p class="card-text">Downloads the screenshot as a JPEG file.</p>
+                                        <code>?url=https://example.com</code>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card api-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">/stream</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">GET</h6>
+                                        <p class="card-text">Streams the rendering process events in real-time.</p>
+                                        <code>?url=https://example.com</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="pt-5 my-5 text-muted border-top">
+            Created by Sarvagya Kumar &middot; &copy; 2025
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const apiForm = document.getElementById('apiForm');
+            const urlInput = document.getElementById('urlInput');
+            const resultContainer = document.getElementById('resultContainer');
+            const responseJson = document.getElementById('responseJson');
+            const downloadSourceBtn = document.getElementById('downloadSourceBtn');
+            const downloadImageBtn = document.getElementById('downloadImageBtn');
+            
+            let currentUrl = '';
+            
+            apiForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const url = urlInput.value;
+                currentUrl = url;
+                const endpoint = document.querySelector('input[name="endpoint"]:checked').value;
+                
+                // Show loading state
+                resultContainer.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+                responseJson.textContent = 'Loading...';
+                
+                // Enable download buttons
+                downloadSourceBtn.disabled = false;
+                downloadImageBtn.disabled = false;
+                
+                try {
+                    const apiUrl = `/${endpoint}?url=${encodeURIComponent(url)}`;
+                    const response = await fetch(apiUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                    
+                    // Handle different response types
+                    if (endpoint === 'source') {
+                        const sourceCode = await response.text();
+                        resultContainer.innerHTML = `<div class="source-code">${escapeHtml(sourceCode)}</div>`;
+                        responseJson.textContent = `HTML source code (${sourceCode.length} bytes)`;
+                    } else if (endpoint === 'image') {
+                        const blob = await response.blob();
+                        const imageUrl = URL.createObjectURL(blob);
+                        resultContainer.innerHTML = `<img src="${imageUrl}" class="preview-image" alt="Screenshot">`;
+                        responseJson.textContent = `Image (${formatBytes(blob.size)})`;
+                    } else if (endpoint === 'render') {
+                        const data = await response.json();
+                        resultContainer.innerHTML = `
+                            <div class="alert alert-success">
+                                <h4>Processing Complete</h4>
+                                <p>Source file: ${data.sourcePath}</p>
+                                <p>Image file: ${data.imagePath}</p>
+                            </div>
+                        `;
+                        responseJson.textContent = JSON.stringify(data, null, 2);
+                    }
+                } catch (error) {
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4>Error</h4>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                    responseJson.textContent = `Error: ${error.message}`;
+                }
+            });
+            
+            // Download buttons
+            downloadSourceBtn.addEventListener('click', function() {
+                if (currentUrl) {
+                    window.location.href = `/download/source?url=${encodeURIComponent(currentUrl)}`;
+                }
+            });
+            
+            downloadImageBtn.addEventListener('click', function() {
+                if (currentUrl) {
+                    window.location.href = `/download/image?url=${encodeURIComponent(currentUrl)}`;
+                }
+            });
+            
+            // Helper functions
+            function escapeHtml(html) {
+                const div = document.createElement('div');
+                div.textContent = html;
+                return div.innerHTML;
+            }
+            
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
+        });
+    </script>
+</body>
+</html> 
