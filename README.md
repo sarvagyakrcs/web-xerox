@@ -29,6 +29,12 @@ cd web-xerox
 bun install
 ```
 
+---
+## Images
+<img src="https://github.com/sarvagyakrcs/web-xerox/blob/main/images/rest-api-demo.png?raw=true" alt="browser-demo" />
+<img src="https://github.com/sarvagyakrcs/web-xerox/blob/main/images/streaming-demo.png?raw=true" alt="streaming-demo" />
+<img src="https://github.com/sarvagyakrcs/web-xerox/blob/main/images/main-page.png?raw=true" alt="main-page" />
+---
 ## Usage
 
 ### Legacy CLI (v1.0)
